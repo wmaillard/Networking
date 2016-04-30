@@ -1,3 +1,9 @@
+/*William Maillard
+CS 372-400
+Project 1
+5/1/16
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -33,7 +39,7 @@ int main(int argc, char *argv[])
         else goodName = 1;
     }
     
-    
+    //Most of the set up and chat interface come from Beej's guide http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html
     // Get address info
 
     //Load up hints
@@ -66,7 +72,7 @@ int main(int argc, char *argv[])
     }
     
     //Start chat
-	int maxBuff = 515   //501 plus max name size (10) and "> " size
+	int maxBuff = 515;   //501 plus max name size (11) and "> " size
     char buffer[maxBuff]; 
     char message[501];
     char *endCase = "\\quit";
@@ -91,23 +97,22 @@ int main(int argc, char *argv[])
     }
     printf("Waiting for first reply from Server\n");
 
-  //  while ((c = getchar()) != '\n' && c != EOF);  //Fix for newline problems in the buffer stream
     
     int end = -1;
     int reply = 1; 
-
+	
+	//Start chat and change end to end it (\quit from client or server)
     while(end == -1){
         
         reply = recv(server, buffer, maxBuff, 0);
         if(reply != 0){
             printf("%s\n", buffer);
-            
             printf("%s> ", name);
 
             fgets(message, sizeof(message), stdin);
 
             strtok(message, "\n");
-            if(strncmp(message, endCase, 5) == 0){
+            if(strncmp(message, endCase, 5) == 0){			//If client types \quit, close connection
                 printf("Exiting...\n");
                 end = 1;
             }
@@ -119,12 +124,12 @@ int main(int argc, char *argv[])
                 bytesSent = send(server, buffer, maxBuff, 0);
 
                 if( bytesSent == -1){
-                    //cout << "Error sending message: " << errno << endl;
+                    printf("Error sending message: %i", errno);
                     return -1;
                 }
             }
         }
-        else{
+        else{ 													//If server closed connection, end chat
             printf("Connection has been closed by the server\n");
             end = 1;
         }
@@ -133,7 +138,9 @@ int main(int argc, char *argv[])
 
     }
 
-    shutdown(server, 2);
+    if(shutdown(server, 2) != 0){
+		printf("Error shutting down connection: %d", errno);
+	}
     freeaddrinfo(servinfo); //free this at end
     return 0;
 }
