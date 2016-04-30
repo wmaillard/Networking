@@ -8,26 +8,18 @@
 #include <errno.h>
 
 
-int main()
+int main(int argc, char *argv[])
 {
     int status;
     struct addrinfo hints;
     struct addrinfo *servinfo;
-    char *port = malloc(256); //port number
-    char *host = malloc(256); //host address or name
+    char *port = argv[2]; //port number
+    char *host = argv[1]; //host address or name
     char *name = malloc(11);
     int errno;
 
-    //Get port number and host name
-    
-    printf("Please enter the host to connect to: ");
-    scanf("%s", host);
-    
-    printf("Please enter the port to connect to: ");
-    scanf("%s", port);
 
-
-    int goodName = -1;
+    int goodName = -1;						//Get username and make sure it is under 10 characters
     while(goodName == -1){
         printf("Please enter your name (Keep it under 10 characters): ");
         scanf("%s", name);
@@ -74,30 +66,39 @@ int main()
     }
     
     //Start chat
-    char buffer[513]; //500 plus max name size (10) and "> " size
-    char message[500];
+	int maxBuff = 515   //501 plus max name size (10) and "> " size
+    char buffer[maxBuff]; 
+    char message[501];
     char *endCase = "\\quit";
+	char c;
+	
+	
+	printf("Enter your first message to send:\n%s> ", name);
+	
+	while ((c = getchar()) != '\n' && c != EOF);  //Fix for newline problems in the buffer stream
+	fgets(message, sizeof(message), stdin);
+	strtok(message, "\n");
+	
     strcpy(buffer, name);
     strcat(buffer, "> ");
-    strcat(buffer, "Hello, I have connected!");
+    strcat(buffer, message);
     
-    int bytesSent = send(server, buffer, 513, 0);
+    int bytesSent = send(server, buffer, maxBuff, 0);
 
     if( bytesSent == -1){
         printf("Error sending message: %i\n", errno);
         return -1;
     }
     printf("Waiting for first reply from Server\n");
-    
-    char c;
-    while ((c = getchar()) != '\n' && c != EOF);  //Fix for newline problems in the buffer stream
+
+  //  while ((c = getchar()) != '\n' && c != EOF);  //Fix for newline problems in the buffer stream
     
     int end = -1;
     int reply = 1; 
 
     while(end == -1){
         
-        reply = recv(server, buffer, 513, 0);
+        reply = recv(server, buffer, maxBuff, 0);
         if(reply != 0){
             printf("%s\n", buffer);
             
@@ -106,7 +107,6 @@ int main()
             fgets(message, sizeof(message), stdin);
 
             strtok(message, "\n");
-            printf("Message:  !%s", message);
             if(strncmp(message, endCase, 5) == 0){
                 printf("Exiting...\n");
                 end = 1;
@@ -116,7 +116,7 @@ int main()
                 strcpy(buffer, name);
                 strcat(buffer, "> ");
                 strcat(buffer, message);
-                bytesSent = send(server, buffer, 513, 0);
+                bytesSent = send(server, buffer, maxBuff, 0);
 
                 if( bytesSent == -1){
                     //cout << "Error sending message: " << errno << endl;

@@ -12,17 +12,21 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
     int status;
     struct addrinfo hints;
     struct addrinfo *servinfo;
-	string portString;
+
     int errno;
 	int numPort = -1;
-	const char *port;
+	
 	
 	//Get Port number
+	const char *port = argv[1];
+	string portString = argv[1];
+	
+	/*
 	while(numPort <= 1024 || numPort > 65535){
 		cout << "Please enter what port number to start on: ";
 		cin >> portString;
@@ -32,7 +36,7 @@ int main()
 			cout << "Error, please enter a port greater than 1024 and less than 65536" << endl;
 		}
 	}
-
+*/
 	
 	
 	cout << "Connecting on port " << portString << "..." << endl;
@@ -71,12 +75,13 @@ int main()
 
     //Start listening
 
+		
     if( listen(server, 5) == -1 ){
          cout << "Error starting to listen: " << errno << endl;
          return -1;
     }
 
-
+	while(true){
     //Accept connection
     struct sockaddr_storage clientAddr;
     int client;
@@ -92,18 +97,18 @@ int main()
 
 
     const char *name = "Server";
+	int maxBuff = 515;//500 plus max name size (10) and "> " size
 	//Start chat
-    char buffer[513]; //500 plus max name size (10) and "> " size
-    char message[500];
+    char buffer[maxBuff]; 
+    char message[501];
 	int bytesSent;
 	int reply = 1; 
 	char c;
 	char *endCase = "\\quit";
+
 	
-	printf("endcase: %s", endCase);
-	
-	//Receive first message and clean input stream
-	reply = recv(client, buffer, 513, 0);
+	//Receive first message 
+	reply = recv(client, buffer, maxBuff, 0);
 	if(reply != 0){
 		printf("%s\n", buffer);
 	}
@@ -111,7 +116,7 @@ int main()
 		printf("Error receiving first message\n");
 		return -1;
 	}
-    while ((c = getchar()) != '\n' && c != EOF);  //Fix for newline problems in the buffer stream
+    //while ((c = getchar()) != '\n' && c != EOF);  //Fix for newline problems in the buffer stream
 	
 	
 	
@@ -126,7 +131,7 @@ int main()
 		
 		
         if(strncmp(message, endCase, 5) == 0){
-			printf("Exiting...\n");
+			printf("Closing the connection with the client...\n");
             end = 1;
         }
         else{
@@ -134,14 +139,14 @@ int main()
             strcpy(buffer, name);
             strcat(buffer, "> ");
             strcat(buffer, message);
-            bytesSent = send(client, buffer, 513, 0);
+            bytesSent = send(client, buffer, maxBuff, 0);
 
             if( bytesSent == -1){
                 //cout << "Error sending message: " << errno << endl;
                 return -1;
             }
 			
-			reply = recv(client, buffer, 513, 0);
+			reply = recv(client, buffer, maxBuff, 0);
 			if(reply != 0){
 				printf("%s\n", buffer);
 			}
@@ -158,10 +163,10 @@ int main()
     }
 
 
+    shutdown(client, 2);
+	close(client);
 
-
-    shutdown(server, 2);
-
-    freeaddrinfo(servinfo); //free this at end
+} //end first while
+    freeaddrinfo(servinfo);  //free this at end
     return 0;
 }
