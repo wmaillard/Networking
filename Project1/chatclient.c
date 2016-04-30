@@ -23,6 +23,11 @@ int main(int argc, char *argv[])
     char *host = argv[1]; //host address or name
     char *name = malloc(11);
     int errno;
+	
+	//Check number of command line arguments
+	if(argc != 3){
+		printf("Please follow this format: chatclient <host name> <port number>
+	}
 
 
     int goodName = -1;						//Get username and make sure it is under 10 characters

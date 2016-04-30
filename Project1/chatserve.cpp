@@ -28,6 +28,10 @@ int main(int argc, char *argv[])
     int errno;
 	int numPort = -1;
 	
+	//Check number of command line arguments
+	if(argc != 2){
+		printf("Please follow this format: chatserve <port number>
+	}
 	
 	//Get Port number
 	const char *port = argv[1];
