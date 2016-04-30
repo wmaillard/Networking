@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
 	
 	//Check number of command line arguments
 	if(argc != 2){
-		printf("Please follow this format: chatserve <port number>
+		printf("Please follow this format: chatserve <port number>\n");
+		return -1;
 	}
 	
 	//Get Port number

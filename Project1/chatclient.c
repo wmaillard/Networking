@@ -26,7 +26,8 @@ int main(int argc, char *argv[])
 	
 	//Check number of command line arguments
 	if(argc != 3){
-		printf("Please follow this format: chatclient <host name> <port number>
+		printf("Please follow this format: chatclient <host name> <port number>\n");
+		return -1;
 	}
 
 
