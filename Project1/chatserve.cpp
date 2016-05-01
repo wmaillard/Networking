@@ -55,7 +55,7 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 		const char *name = "Server";
 		int maxBuff = 515;										//500 plus max name size (10) and "> " size
 		
-		//Start chat
+																//Start chat
 		char buffer[maxBuff]; 
 
 		while(true){											//Continue the chat until broken out (client or server end chat with \quit)
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 			}
 		}
 
-    	if(shutdown(client, 2) != 0){
+    	if(shutdown(client, 2) != 0){							//Shutdown connection
 			printf("Error shutting down connection: %d", errno);
 		}
 
@@ -169,7 +169,7 @@ int receiveMessage(int client, char* buffer, int maxBuff){
 			return 0;
 		}
 		else{
-			printf("Connection has been closed by the Client\n");
+			printf("Connection has been closed by the client\n");
 			return -1;
 		}
 }
