@@ -2,6 +2,9 @@
 CS 372-400
 Project 1
 5/1/16
+Description: This is the client side of a chat application that allows a client and 
+server to communicate via the commandline.  More information about set-up, and command-line
+arguments can be found in the README.txt file.
 */
 
 #include <stdio.h>
@@ -19,12 +22,12 @@ int main(int argc, char *argv[])
     int status;
     struct addrinfo hints;
     struct addrinfo *servinfo;
-    char *port = argv[2]; //port number
-    char *host = argv[1]; //host address or name
+    char *port = argv[2];					//port number
+    char *host = argv[1]; 					//host address or name
     char *name = malloc(11);
     int errno;
 	
-	//Check number of command line arguments
+											//Check number of command line arguments
 	if(argc != 3){
 		printf("Please follow this format: chatclient <host name> <port number>\n");
 		return -1;

@@ -3,7 +3,7 @@ CS 372-400
 Project 1
 5/1/16
 
-This program was tested on flip2.engr.oregonstate.edu and flip3.engr.oregonstate.edu.
+This program was tested on flip1.engr.oregonstate.edu and flip2.engr.oregonstate.edu.
 
 Use:
 Compile both the chatclient and chatserve by just typing make.
