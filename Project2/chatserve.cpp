@@ -28,6 +28,7 @@ int acceptConnection(int server);
 int receiveMessage(int client, string *received);
 int sendMessage(int client);
 int sendFile(int client);
+bool fexists(const char *filename);
 
 int main(int argc, char *argv[])								//argv[1] is the port number
 {
@@ -41,11 +42,13 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 	const char* controlPort = argv[1];															//Most of the set up and chat interface come from Beej's guide
 																//http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 
-	printf("Connecting on port %s...\n", port);
-	int control = startUp(port);									//Start listening on port
+	printf("Connecting on port %s...\n", controlPort);
+	int control = startUp(controlPort);									//Start listening on port
 	if(control == -1) return -1;
 	
 	string received;
+	string error;
+	bool formatError = false;
 	
 	while(true){												//Keep listening open even after chat is done (until SIGINT)
 		
@@ -54,30 +57,75 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 		if(controlConn == -1) return -1;
 
 		const char *name = "Server";
+		vector<string> arguments;
 													//Start chat
 
-		while(true){											//Continue the chat until broken out (client or server end chat with \quit)
+													//Continue the chat until broken out (client or server end chat with \quit)
 			
 									
 			if(receiveMessage(controlConn, &received) == -1){	//Receive first message 
 				//handle error
 				break;
 			}
-			cout << received << endl;								//Print received message
+			for(int i = 0; i < received.length(); i++){
+				while(received[i] == ' ' && i < received.length()){
+					i++;
+				}
+				string newArg = "";
+				while(received[i] != ' ' && i < received.length()){
+					newArg += received[i];
+					i++;
+				}
+				arguments.push_back(newArg);
+			}
 			
-			int sent = sendFile(client);						//Send message, break if "\quit", return if error
-			break;
-			if(sent == 1){
+			string dataPort = arguments[arguments.length() - 1];
+			int data = startUp(dataPort.c_str());
+			
+			if(arguments[0] != "-l" || arguments[0] != "-g"){
+				error = "Your command, " + arguments[0] + " is not recognized";
+				formatError = true;
+			}
+															//Start listening on port
+			else if(data == -1){
+				error = "Could not start on port: " + dataPort;
+				formatError = true;
+			}
+			
+			else if(arguments.length == 3 && !fexists(arguments[2].c_str())){
+				error = "File, " + arguments[2] + " does not exist";
+				formatError = true;
+			}
+			
+			if(formatError){
+				sendMessage(error); //TODO need to change send message to accept messages
+				formatError = false;
+				error = "";
 				break;
 			}
-			else if(sent == -1){
-				return -1;
+			else{
+				dataConn = acceptConnection(data)
+				
+				int sent = sendFile(dataConn);						//Send message, break if "\quit", return if error
+				if(sent == 1){
+					break;
+				}
+				else if(sent == -1){
+					sendMessage("Error sending file") //Todo, add client
+				}
 			}
+			
+			
+			
+
+		}
+		if(shutdown(dataConn, 2) != 0){							//Shutdown connection
+			printf("Error shutting down data connection: %d", errno);
+		}
+		if(shutdown(controlConn, 2) != 0){
+			printf("Error shutting down control connection: %d", errno);
 		}
 
-    	if(shutdown(client, 2) != 0){							//Shutdown connection
-			printf("Error shutting down connection: %d", errno);
-		}
 
 
 	} //end main while
@@ -260,5 +308,10 @@ int sendFile(int client){  //This is all from here: http://stackoverflow.com/que
 	}
 }
 
+bool fexists(const char *filename) //Taken from here: http://www.cplusplus.com/forum/general/1796/
+{
+  ifstream ifile(filename);
+  return ifile;
+}
 
 
