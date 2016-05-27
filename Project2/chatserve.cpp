@@ -21,13 +21,14 @@ arguments can be found in the README.txt file.
 #include <sys/unistd.h>
 #include <vector>
 #include <fcntl.h>
+#include <dirent.h>
 
 using namespace std;
 int startUp(const char *port);
 int acceptConnection(int server);
 int receiveMessage(int client, string *received);
-int sendMessage(int client);
-int sendFile(int client);
+int sendMessage(string message, int connection);
+int sendFile(string file, int connection);
 bool fexists(const char *filename);
 
 int main(int argc, char *argv[])								//argv[1] is the port number
@@ -98,20 +99,43 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 			}
 			
 			if(formatError){
-				sendMessage(error); //TODO need to change send message to accept messages
+				sendMessage(error, controlConn); 
 				formatError = false;
 				error = "";
 				break;
 			}
 			else{
-				dataConn = acceptConnection(data)
-				
-				int sent = sendFile(dataConn);						//Send message, break if "\quit", return if error
+				dataConn = acceptConnection(data);
+				int sent;
+				if(arguments.length == 3){
+				      sent = sendFile(dataConn, arguments[2]);
+				}
+				else{  //Directory listing ideas taken from here: http://www.gnu.org/software/libc/manual/html_node/Simple-Directory-Lister.html
+					DIR *dp;
+					struct dirent *ep;
+					string dirList = "";
+					
+					dp = opendir ("./");
+					if (dp != NULL){
+						while (ep = readdir (dp)){
+						dirList += ep->d_name;
+					}
+					
+					(void) closedir (dp);
+					}
+					else{
+					    perror ("Couldn't open the directory");
+					}
+					
+					
+					sent = sendMessage(dirList, dataConn));  //Might not work, sending message but receiving file?
+				}
+										//Send message, break if "\quit", return if error
 				if(sent == 1){
 					break;
 				}
 				else if(sent == -1){
-					sendMessage("Error sending file") //Todo, add client
+					sendMessage("Error sending file", controlConn) //Todo, add client
 				}
 			}
 			
@@ -237,29 +261,10 @@ int receiveMessage(int client, string *received){
 //Receives a message and puts it in buffer.
 //Returns -1 on error, 0 on success, and 1 on choosing to close the connection.
 
-int sendMessage(int client){
+int sendMessage(string message, int connection){
 			
-	char message[501];
-	char *endCase = "\\quit";
-	char *name = "Server";
-	int maxBuff = 515;
-	char buffer[maxBuff];
-	
-	printf("%s> ", name);
-	fgets(message, sizeof(message), stdin);					//Get the message from the user
-	strtok(message, "\n");
 
-	if(strncmp(message, endCase, 5) == 0){					//If server types \quit, close connection
-		printf("Closing the connection with the client...\n");
-		return 1;
-	}
-	else{
-		buffer[0] = '\0';
-		strcpy(buffer, name);
-		strcat(buffer, "> ");
-		strcat(buffer, message);
-
-		if( send(client, buffer, maxBuff, 0) == -1){
+		if( send(connection, message.c_str(), message.length(), 0) == -1){
 			cout << "Error sending message: " << errno << endl;
 			return -1;
 		}
