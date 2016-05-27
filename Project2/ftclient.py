@@ -35,21 +35,20 @@ else:
 	return -1
 
 if command == "-l":
-	while theList = control.recv(4096):				#is 4 MiB ok?
-        	print(theList)
+	theList = control.recv(4096)				#is 4 MiB ok?
+        print theList
 else:
 					#Ideas for sending files came from here: http://www.bogotobogo.com/python/python_network_programming_server_client_file_transfer.php
 	with open(fileName, 'wb') as newFile:
 	    while filePieces = control.recv(4096):				#is 4 MiB ok?
-	        print('receiving file...')
+	        print 'receiving file...'
 	        # write data to a file
 	        newFile.write(filePieces)
 	newFile.close()
-	data.close()
 	if True:			#change this to on success, maybe correct number of bytes
-		print('File successfully transfered')
+		print 'File successfully transfered'
 	else:
-		print('Error transferring file')
-
+		print 'Error transferring file'
+data.close()
 control.close()
 
