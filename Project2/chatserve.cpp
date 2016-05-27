@@ -105,6 +105,7 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 				break;
 			}
 			else{
+				sendMessage("OK", controlConn)
 				dataConn = acceptConnection(data);
 				int sent;
 				if(arguments.length == 3){
@@ -135,7 +136,7 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 					break;
 				}
 				else if(sent == -1){
-					sendMessage("Error sending file", controlConn) //Todo, add client
+					sendMessage("Error sending file", controlConn) 
 				}
 			}
 			
