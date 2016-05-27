@@ -8,7 +8,7 @@ import sys
 control = socket.socket()          
 data = socket.socket()
 
-if len(sys.argv) == 6 || len(sys.argv) == 5:
+if len(sys.argv) == 6 or len(sys.argv) == 5:
 	host = sys.argv[1]     
 	port = int(sys.argv[2])
 	command = (sys.argv[3])
