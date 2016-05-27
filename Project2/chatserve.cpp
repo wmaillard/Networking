@@ -1,7 +1,7 @@
 /*William Maillard
 CS 372-400
 Project 1: chatserve
-5/1/16
+5/1/16 Test
 Description: This is the server side of a chat application that allows a client and 
 server to communicate via the commandline.  More information about set-up, and command-line
 arguments can be found in the README.txt file.
