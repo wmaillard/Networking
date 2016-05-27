@@ -32,40 +32,35 @@ int sendFile(int client);
 int main(int argc, char *argv[])								//argv[1] is the port number
 {
     int errno;
-	int client;
-	const char* port = argv[1];
-	
+	int controlConn, dataConn;
 																//Check number of command line arguments
 	if(argc != 2){
-		printf("Please follow this format: chatserve <port number>\n");
+		printf("Please follow this format: ftserver <port number>\n");
 		return -1;
 	}
-																//Most of the set up and chat interface come from Beej's guide
+	const char* controlPort = argv[1];															//Most of the set up and chat interface come from Beej's guide
 																//http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html
 
 	printf("Connecting on port %s...\n", port);
-	int server = startUp(port);									//Start listening on port
-	if(server == -1) return -1;
+	int control = startUp(port);									//Start listening on port
+	if(control == -1) return -1;
 	
 	string received;
 	
-
 	while(true){												//Keep listening open even after chat is done (until SIGINT)
 		
 		printf("Waiting for a connection from the client on port, %s...\n", port);
-		client = acceptConnection(server);
-		if(client == -1) return -1;
+		controlConn = acceptConnection(control);
+		if(controlConn == -1) return -1;
 
 		const char *name = "Server";
-
-		
-		
-																//Start chat
+													//Start chat
 
 		while(true){											//Continue the chat until broken out (client or server end chat with \quit)
 			
 									
-			if(receiveMessage(client, &received) == -1){	//Receive first message 
+			if(receiveMessage(controlConn, &received) == -1){	//Receive first message 
+				//handle error
 				break;
 			}
 			cout << received << endl;								//Print received message
