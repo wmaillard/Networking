@@ -18,13 +18,13 @@ if len(sys.argv) == 6 or len(sys.argv) == 5:
 	else :
 		fileName = sys.argv[4]
 		dataPort = int(sys.argv[5])
-else
+else:
 	print "Please use the format 'ftclient <SERVER_HOST> <SERVER_PORT> <COMMAND> [FILENAME] <DATA_PORT>"
-	return -1
+	exit -1
 
 
-control.connect(host, port)
-control.send(command + " " + filename + " " + dataPort) 
+control.connect((host, port))
+control.send(command + " " + fileName + " " + str(dataPort)) 
 response = control.recv(1024)
 
 if response == "OK":
@@ -32,7 +32,7 @@ if response == "OK":
 else:
 	print "Error: " + response
 	control.close()
-	return -1
+	exit -1
 
 if command == "-l":
 	theList = control.recv(4096)				#is 4 MiB ok?
@@ -40,10 +40,12 @@ if command == "-l":
 else:
 					#Ideas for sending files came from here: http://www.bogotobogo.com/python/python_network_programming_server_client_file_transfer.php
 	with open(fileName, 'wb') as newFile:
-	    while filePieces = control.recv(4096):				#is 4 MiB ok?
-	        print 'receiving file...'
-	        # write data to a file
-	        newFile.write(filePieces)
+		filePieces = control.recv(4096)
+		while filePieces != 0:				#is 4 MiB ok?
+			print 'receiving file...'
+			# write data to a file
+			newFile.write(filePieces)
+			filePieces = control.recv(4096)
 	newFile.close()
 	if True:			#change this to on success, maybe correct number of bytes
 		print 'File successfully transfered'

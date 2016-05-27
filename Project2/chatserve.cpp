@@ -22,6 +22,7 @@ arguments can be found in the README.txt file.
 #include <vector>
 #include <fcntl.h>
 #include <dirent.h>
+#include <fstream>
 
 using namespace std;
 int startUp(const char *port);
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 	
 	while(true){												//Keep listening open even after chat is done (until SIGINT)
 		
-		printf("Waiting for a connection from the client on port, %s...\n", port);
+		printf("Waiting for a connection from the client on port, %s...\n", controlPort);
 		controlConn = acceptConnection(control);
 		if(controlConn == -1) return -1;
 
@@ -80,7 +81,7 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 				arguments.push_back(newArg);
 			}
 			
-			string dataPort = arguments[arguments.length() - 1];
+			string dataPort = arguments[arguments.size() - 1];
 			int data = startUp(dataPort.c_str());
 			
 			if(arguments[0] != "-l" || arguments[0] != "-g"){
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 				formatError = true;
 			}
 			
-			else if(arguments.length == 3 && !fexists(arguments[2].c_str())){
+			else if(arguments.size() == 3 && !fexists(arguments[2].c_str())){
 				error = "File, " + arguments[2] + " does not exist";
 				formatError = true;
 			}
@@ -105,11 +106,11 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 				break;
 			}
 			else{
-				sendMessage("OK", controlConn)
+				sendMessage("OK", controlConn);
 				dataConn = acceptConnection(data);
 				int sent;
-				if(arguments.length == 3){
-				      sent = sendFile(dataConn, arguments[2]);
+				if(arguments.size() == 3){
+				      sent = sendFile(arguments[2], dataConn);
 				}
 				else{  //Directory listing ideas taken from here: http://www.gnu.org/software/libc/manual/html_node/Simple-Directory-Lister.html
 					DIR *dp;
@@ -129,21 +130,21 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 					}
 					
 					
-					sent = sendMessage(dirList, dataConn));  //Might not work, sending message but receiving file?
+					sent = sendMessage(dirList, dataConn);  //Might not work, sending message but receiving file?
 				}
 										//Send message, break if "\quit", return if error
 				if(sent == 1){
 					break;
 				}
 				else if(sent == -1){
-					sendMessage("Error sending file", controlConn) 
+					sendMessage("Error sending file", controlConn); 
 				}
 			}
 			
 			
 			
 
-		}
+		
 		if(shutdown(dataConn, 2) != 0){							//Shutdown connection
 			printf("Error shutting down data connection: %d", errno);
 		}
@@ -269,12 +270,12 @@ int sendMessage(string message, int connection){
 			cout << "Error sending message: " << errno << endl;
 			return -1;
 		}
-	}
+	
 	return 0;
 }
 
-int sendFile(int client){  //This is all from here: http://stackoverflow.com/questions/2014033/send-and-receive-a-file-in-socket-programming-in-linux-with-c-c-gcc-g
-	int fp = open("test.txt", O_RDONLY);
+int sendFile(string fileName, int client){  //This is all from here: http://stackoverflow.com/questions/2014033/send-and-receive-a-file-in-socket-programming-in-linux-with-c-c-gcc-g
+	int fp = open(fileName.c_str(), O_RDONLY);
 	
 	int maxBuff = 4000;					//The idea of how to convert a buffer into a string came from here: http://stackoverflow.com/questions/18670807/sending-and-receiving-stdstring-over-socket		
 	
