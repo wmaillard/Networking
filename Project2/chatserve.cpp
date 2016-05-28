@@ -24,13 +24,14 @@ arguments can be found in the README.txt file.
 #include <dirent.h>
 #include <fstream>
 
+
 using namespace std;
 int startUp(const char *port);
 int acceptConnection(int server);
 int receiveMessage(int client, string *received);
 int sendMessage(string message, int connection);
 int sendFile(string file, int connection);
-bool fexists(const char *filename);
+bool fexists (const string &file); 
 
 int main(int argc, char *argv[])								//argv[1] is the port number
 {
@@ -50,16 +51,25 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 	
 	string received;
 	string error;
-	bool formatError = false;
+	vector<string> arguments;
+
 	
 	while(true){												//Keep listening open even after chat is done (until SIGINT)
 		
-		printf("Waiting for a connection from the client on port, %s...\n", controlPort);
+		printf("\nWaiting for a connection from the client on port, %s...\n", controlPort);
 		controlConn = acceptConnection(control);
 		if(controlConn == -1) return -1;
 
 		const char *name = "Server";
-		vector<string> arguments;
+		int data;
+		bool formatError = false;
+		bool anyError = false;
+		arguments.clear();
+		received = "";
+		
+		/*TESTING FEXISTS*/
+		cout << "test.txt: " << fexists("test.txt") << endl;
+		
 													//Start chat
 
 													//Continue the chat until broken out (client or server end chat with \quit)
@@ -67,35 +77,39 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 									
 			if(receiveMessage(controlConn, &received) == -1){	//Receive first message 
 				//handle error
-				break;
+				anyError = true;
 			}
+			cout << "receivedargs: " << received << endl;
 			for(int i = 0; i < received.length(); i++){
-				while(received[i] == ' ' && i < received.length()){
+				while(i < received.length() && received.at(i) == ' '){
 					i++;
 				}
 				string newArg = "";
-				while(received[i] != ' ' && i < received.length()){
-					newArg += received[i];
+				while(i < received.length() && received.at(i) != ' ' ){
+					newArg += received.at(i);
 					i++;
 				}
 				arguments.push_back(newArg);
 			}
+			for(int i = 0; i < arguments.size(); i++){
+				cout << "args: " << arguments.at(i) << endl;
+			}
 			
 			string dataPort = arguments[arguments.size() - 1];
-			int data = startUp(dataPort.c_str());
+			data = startUp(dataPort.c_str());
 			
-			if(arguments[0] != "-l" || arguments[0] != "-g"){
+			if(arguments[0] != "-l" && arguments[0] != "-g"){
 				error = "Your command, " + arguments[0] + " is not recognized";
 				formatError = true;
 			}
-															//Start listening on port
+														//Start listening on port
 			else if(data == -1){
 				error = "Could not start on port: " + dataPort;
 				formatError = true;
 			}
 			
-			else if(arguments.size() == 3 && !fexists(arguments[2].c_str())){
-				error = "File, " + arguments[2] + " does not exist";
+			else if(arguments.size() == 3 && !fexists(arguments[1])){
+				error = "File, " + arguments[1] + " does not exist";
 				formatError = true;
 			}
 			
@@ -103,14 +117,17 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 				sendMessage(error, controlConn); 
 				formatError = false;
 				error = "";
-				break;
+				anyError = true;
+				
 			}
-			else{
+			else if(!anyError){
 				sendMessage("OK", controlConn);
 				dataConn = acceptConnection(data);
 				int sent;
+				cout << "arg size: " << arguments.size() << endl;
 				if(arguments.size() == 3){
-				      sent = sendFile(arguments[2], dataConn);
+					cout << "hey: " << arguments[1] << endl;
+				      sent = sendFile(arguments[1], dataConn);
 				}
 				else{  //Directory listing ideas taken from here: http://www.gnu.org/software/libc/manual/html_node/Simple-Directory-Lister.html
 					DIR *dp;
@@ -120,7 +137,8 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 					dp = opendir ("./");
 					if (dp != NULL){
 						while (ep = readdir (dp)){
-						dirList += ep->d_name;
+							dirList += ep->d_name;
+							dirList += "\n";
 					}
 					
 					(void) closedir (dp);
@@ -129,12 +147,12 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 					    perror ("Couldn't open the directory");
 					}
 					
-					
+					//dirList
 					sent = sendMessage(dirList, dataConn);  //Might not work, sending message but receiving file?
 				}
-										//Send message, break if "\quit", return if error
+										
 				if(sent == 1){
-					break;
+					anyError = true;
 				}
 				else if(sent == -1){
 					sendMessage("Error sending file", controlConn); 
@@ -143,6 +161,7 @@ int main(int argc, char *argv[])								//argv[1] is the port number
 			
 			
 			
+
 
 		
 		if(shutdown(dataConn, 2) != 0){							//Shutdown connection
@@ -266,7 +285,7 @@ int receiveMessage(int client, string *received){
 int sendMessage(string message, int connection){
 			
 
-		if( send(connection, message.c_str(), message.length(), 0) == -1){
+		if( send(connection, message.c_str(), message.size(), 0) == -1){
 			cout << "Error sending message: " << errno << endl;
 			return -1;
 		}
@@ -275,6 +294,7 @@ int sendMessage(string message, int connection){
 }
 
 int sendFile(string fileName, int client){  //This is all from here: http://stackoverflow.com/questions/2014033/send-and-receive-a-file-in-socket-programming-in-linux-with-c-c-gcc-g
+	cout << "fileName in sendFile: " << fileName << endl;
 	int fp = open(fileName.c_str(), O_RDONLY);
 	
 	int maxBuff = 4000;					//The idea of how to convert a buffer into a string came from here: http://stackoverflow.com/questions/18670807/sending-and-receiving-stdstring-over-socket		
@@ -297,6 +317,7 @@ int sendFile(string fileName, int client){  //This is all from here: http://stac
 			// handle errors
 	
 			cout << "dude: " << errno <<endl;
+			break;
 		}
 
 		// You need a loop for the write, because not all of the data may be written
@@ -315,10 +336,10 @@ int sendFile(string fileName, int client){  //This is all from here: http://stac
 	}
 }
 
-bool fexists(const char *filename) //Taken from here: http://www.cplusplus.com/forum/general/1796/
-{
-  ifstream ifile(filename);
-  return ifile;
+bool fexists (const string &file) { //Borrowed from here, just tests if a file exists: http://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
+	cout << "file: " << file << endl;
+    ifstream fp(file.c_str());
+    return fp.good();
 }
 
 
