@@ -49,7 +49,7 @@ def initiateContact():
 	if formatErr:
 		print "Please use the format 'ftclient <SERVER_HOST> <SERVER_PORT> <COMMAND> [FILENAME] <DATA_PORT>"
 		control.close()
-		exit(-1)
+		os._exit(-1)
 
 	#Make a connection
 	control.connect((host, port))
@@ -69,16 +69,21 @@ def makeRequest(theVars):
 	
 	
 	data = socket.socket()
-	control.send(command + " " + fileName + " " + str(dataPort)) #Send the request
+	control.send(command + " " + fileName + " " + str(dataPort) + " " + socket.gethostname()) #Send the request
 	response = control.recv(1024)
-
-	if response == "OK":						#If the server says everything is ok, connect on the dataPort.  Else close the control and exit.
+	responseSp = response.split()
+	
+	
+	if responseSp[0] == "OK":						#If the server says everything is ok, connect on the dataPort.  Else close the control and exit.
 		data.connect((host, dataPort))
-		print ("Connecting to data host: " + host + " on port: " + str(dataPort))
+		if(command == "-l"):
+			print ("Receiving file listing from " + responseSp[1] + " on port: " + str(dataPort))
+		elif(command == "-g"):
+			print ("Receiving file '" + fileName + "' from " + responseSp[1] + " on port: " + str(dataPort))
 	else:
 		print "Error: " + response
 		control.close()
-		exit(-1)
+		os._exit(-1)
 		
 	theVars['data'] = data
 	return theVars

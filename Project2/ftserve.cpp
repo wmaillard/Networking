@@ -157,7 +157,7 @@ int handleRequest(int &control, int &data){
 		arguments.push_back(newArg);
 	}
 
-	dataPort = arguments[arguments.size() - 1];
+	dataPort = arguments[arguments.size() - 2];
 	
 	data = startUp(dataPort.c_str());  //Start up data connection
 	
@@ -166,7 +166,7 @@ int handleRequest(int &control, int &data){
 		error = "Your command, " + arguments[0] + " is not recognized";
 		formatError = true;
 	}
-	else if(arguments.size() == 3 && arguments[0] == "-l"){
+	else if(arguments.size() == 4 && arguments[0] == "-l"){
 		error = "Your command '-l' doesn't match the correct number of arguments\n Please use the format 'ftclient <SERVER_HOST> <SERVER_PORT> <COMMAND> [FILENAME] <DATA_PORT>";
 		formatError = true;
 	}
@@ -175,8 +175,10 @@ int handleRequest(int &control, int &data){
 		formatError = true;
 	}
 
-	else if(arguments.size() == 3 && !fexists(arguments[1])){
+	else if(arguments.size() == 4 && !fexists(arguments[1])){
 		error = "File, '" + arguments[1] + "', does not exist";
+		cout << "File '" << arguments[1] << "'requested on port " << arguments[arguments.size() - 2] << endl;
+		cout << error << endl;
 		formatError = true;
 	}
 	//If there was a format error then send an error messsage over the control connection
@@ -189,20 +191,33 @@ int handleRequest(int &control, int &data){
 	}
 	//If there aren't any errors then send 'OK' and then send the appropriate data
 	else if(!anyError){
-		sendMessage("OK", controlConn);
+		char hostname[128];
+		gethostname(hostname, sizeof hostname);
+		
+		string message = "OK ";
+		message += hostname;
+		sendMessage(message, controlConn);
 		dataConn = acceptConnection(data);
 		int sent;
 		
+		
 		//Send the requested file
-		if(arguments.size() == 3){
+		if(arguments.size() == 4){
+			  cout << "\nConnection from " << arguments[3] << endl;
+			  cout << "File '" << arguments[1] << "' requested on port " << arguments[arguments.size() - 2] << endl;
+			  cout << "Sending '" << arguments[1] << "' to " << arguments[3] << ":" << arguments[arguments.size() - 2] << endl;
 			  sent = sendMyFile(arguments[1], dataConn);
 		}
 		//Send the directory listing
 		else{  //Directory listing ideas taken from here: http://www.gnu.org/software/libc/manual/html_node/Simple-Directory-Lister.html
+			cout << "\nConnection from " << arguments[2] << endl;
+			cout << "List directory requested on port " << arguments[arguments.size() - 2] << endl;
+			cout << "Sending directory contents to " << arguments[2] << ":" << arguments[arguments.size() - 2] << endl;
+				
 			DIR *dp;
 			struct dirent *ep;
 			string dirList = "";
-
+			
 			dp = opendir ("./"); //Open the working directory
 			if (dp != NULL){
 				while (ep = readdir (dp)){  //Concactenate the directory info onto a string

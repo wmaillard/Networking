@@ -3,7 +3,7 @@ CS 372-400
 Project 2
 5/28/16
 
-This program was tested on flip1.engr.oregonstate.edu and flip2.engr.oregonstate.edu.
+This program was tested on flip3.engr.oregonstate.edu with flip3.engr.oregonstate.edu.
 
 *Extra Credit: This program can transfer any type of file
 
