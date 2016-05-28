@@ -1,7 +1,4 @@
-all: client server
-
-client: chatclient.c
-	gcc chatclient.c -o chatclient -w
+all: server
 	
-server: chatserve.cpp
-	g++ -std=c++0x -o chatserve chatserve.cpp -w
+server: ftserve.cpp
+	g++ -std=c++0x -o ftserve ftserve.cpp -w
