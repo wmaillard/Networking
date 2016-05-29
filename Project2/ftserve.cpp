@@ -171,7 +171,8 @@ int handleRequest(int &control, int &data){
 		formatError = true;
 	}
 	else if(data == -1){
-		error = "Could not connect on port: " + dataPort;
+		cout << "Tried to send data to " << arguments[arguments.size() - 1] << " on port " << arguments[arguments.size() - 2] << " but could not connect." << endl;
+		error = "Could not connect on port " + arguments[arguments.size() - 2];
 		formatError = true;
 	}
 
@@ -249,11 +250,6 @@ int handleRequest(int &control, int &data){
 			anyError = true;
 		}
 	}
-	//Shutdown the control connection
-/*	if(shutdown(controlConn, 2) != 0){ Handled by client?
-		printf("Error shutting down control connection: %d", errno);
-		anyError = true;
-	}*/
 	if(dataConnectionErr || formatError || anyError){
 		return -1;
 	}

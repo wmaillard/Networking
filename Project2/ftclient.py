@@ -71,6 +71,9 @@ def makeRequest(theVars):
 	data = socket.socket()
 	control.send(command + " " + fileName + " " + str(dataPort) + " " + socket.gethostname()) #Send the request
 	response = control.recv(1024)
+	if not response:
+		print "Error connecting.\n"
+		os.exit(-1)
 	responseSp = response.split()
 	
 	
@@ -120,11 +123,9 @@ def receiveFile(theVars):
 			while filePieces:				
 				newFile.write(filePieces)
 				filePieces = data.recv(1024)
-		newFile.close()
-		if True:			#change this to on success, maybe correct number of bytes
-			print 'File successfully transferred\n'
-		else:
-			print 'Error transferring file\n'
+		newFile.close()	
+		print 'File successfully transferred\n'
+
 	control.close() #close the control connection
 
 if __name__ == '__main__':

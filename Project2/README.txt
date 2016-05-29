@@ -5,7 +5,8 @@ Project 2
 
 This program was tested on flip3.engr.oregonstate.edu with flip3.engr.oregonstate.edu.
 
-*Extra Credit: This program can transfer any type of file
+*Extra Credit: This program can transfer any type of file.  Just transfer any other file like you 
+would a text file.
 
 Use:
 Compile ftserve by typing 'make'
